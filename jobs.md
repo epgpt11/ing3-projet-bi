@@ -319,6 +319,7 @@
 | tRunJob(job_stg_price_list) | stg_price_list |
 | tRunJob(job_stg_discount) | stg_discount |
 | tRunJob(job_stg_supplier) | stg_supplier |
+| tRunJob(job_stg_customer_type) | stg_customer_type |
 | tRunJob(job_stg_customer) | stg_customer |
 | tRunJob(job_stg_orders) | stg_orders |
 | tRunJob(job_stg_order_item) | stg_order_item |
