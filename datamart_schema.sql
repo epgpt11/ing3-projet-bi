@@ -5,7 +5,7 @@
 -- =========================================================
 
 DROP TABLE IF EXISTS dm_top_produits;
-
+/*
 CREATE TABLE dm_top_produits AS
 SELECT 
     p.id_produit,
@@ -18,6 +18,17 @@ FROM faits_sales f
 JOIN dim_product p ON f.id_produit = p.id_produit
 
 GROUP BY p.id_produit;
+*/
+
+DROP TABLE IF EXISTS dm_top_produits;
+CREATE TABLE dm_top_produits AS
+SELECT p.id_produit, p.nom_produit, p.ligne_produit,
+    SUM(CAST(f.quantite AS DECIMAL(14,2))) AS total_quantite,
+    SUM(CAST(f.montant_vente AS DECIMAL(14,2))) AS chiffre_affaire
+    
+FROM datawarehouse.fait_ventes f
+JOIN datawarehouse.dim_product p ON f.id_produit = p.id_produit
+GROUP BY p.id_produit, p.nom_produit, p.ligne_produit;
 
 
 -- =========================================================
@@ -72,7 +83,7 @@ SELECT COUNT(*) FROM dm_tendances;
 -- =========================================================
 
 DROP TABLE IF EXISTS dm_ca_faible;
-
+/*
 CREATE TABLE dm_ca_faible AS
 SELECT 
     p.id_produit,
@@ -91,12 +102,26 @@ GROUP BY
     p.id_produit,
     t.annee,
     g.pays;
+*/
+
+
+DROP TABLE IF EXISTS dm_ca_faible;
+CREATE TABLE dm_ca_faible AS
+SELECT p.id_produit, p.nom_produit, p.ligne_produit, t.annee,
+    g.pays,
+    SUM(CAST(f.montant_vente AS DECIMAL(14,2))) AS chiffre_affaire
+FROM datawarehouse.fait_ventes f
+JOIN datawarehouse.dim_product p ON f.id_produit = p.id_produit
+JOIN datawarehouse.dim_temps t ON CAST(f.id_temps AS UNSIGNED) = t.id_temps
+JOIN datawarehouse.dim_geographie g ON CAST(f.id_geo AS UNSIGNED) = g.id_geo
+WHERE f.id_geo != 'null' AND f.id_geo IS NOT NULL
+GROUP BY p.id_produit, p.nom_produit, p.ligne_produit, t.annee, g.pays;    
 
 
 -- =========================================================
 -- KPI 4 : Dépendance marge vs quantité
 -- =========================================================
-
+/*
 DROP TABLE IF EXISTS dm_marge;
 
 CREATE TABLE dm_marge AS
@@ -112,3 +137,15 @@ FROM faits_sales f
 JOIN dim_product p ON f.id_produit = p.id_produit
 
 GROUP BY p.id_produit;
+
+*/
+-- KPI 4: Marge vs quantité
+DROP TABLE IF EXISTS dm_marge;
+CREATE TABLE dm_marge AS
+SELECT p.id_produit, p.nom_produit, p.ligne_produit,
+    SUM(CAST(f.quantite AS DECIMAL(14,2))) AS total_quantite,
+    SUM(f.marge) AS marge_totale,
+    ROUND(SUM(f.marge) / NULLIF(SUM(CAST(f.quantite AS DECIMAL(14,2))), 0), 2) AS marge_par_unite
+FROM datawarehouse.fait_ventes f
+JOIN datawarehouse.dim_product p ON f.id_produit = p.id_produit
+GROUP BY p.id_produit, p.nom_produit, p.ligne_produit;
