@@ -24,6 +24,7 @@ GROUP BY p.id_produit;
 -- KPI 2 : Produits en perte de vitesse
 -- =========================================================
 
+/*
 DROP TABLE IF EXISTS dm_tendances;
 
 CREATE TABLE dm_tendances AS
@@ -44,6 +45,26 @@ GROUP BY
     p.id_produit,
     t.annee,
     t.mois;
+*/
+
+USE datamarts;
+
+DROP TABLE IF EXISTS dm_tendances;
+CREATE TABLE dm_tendances AS
+SELECT 
+    p.id_produit,
+    p.nom_produit,
+    t.annee,
+    t.mois,
+    SUM(f.quantite) AS quantite_mensuelle,
+    SUM(f.montant_vente) AS ca_mensuel
+FROM datawarehouse.fait_ventes f
+JOIN datawarehouse.dim_product p ON f.id_produit = p.id_produit
+JOIN datawarehouse.dim_temps t ON f.id_temps = t.id_temps
+WHERE f.id_temps IS NOT NULL
+GROUP BY p.id_produit, p.nom_produit, t.annee, t.mois;
+
+SELECT COUNT(*) FROM dm_tendances;
 
 
 -- =========================================================
